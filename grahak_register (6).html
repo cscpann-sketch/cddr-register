@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ग्राहक लेन-देन रजिस्टर</title>
+<style>
+  :root{
+    --navy:#1c2b44;
+    --navy-deep:#121d30;
+    --paper:#faf8f3;
+    --paper-line:#e4ddc9;
+    --gold:#b5892b;
+    --ink:#26313f;
+    --ink-soft:#5b6472;
+    --upi:#2e6b52;
+    --aadhaar:#8a3a2b;
+    --deposit:#2a5f8a;
+    --withdraw:#a06a1e;
+    --danger:#9c3b3b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', 'Noto Sans Devanagari', Arial, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  header{
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep) 100%);
+    color:#f2ecdc;
+    padding:22px 20px 26px;
+    text-align:center;
+    border-bottom:4px solid var(--gold);
+    position:relative;
+  }
+  header h1{
+    margin:0;
+    font-size:1.5rem;
+    font-weight:600;
+    letter-spacing:.3px;
+  }
+  header p{
+    margin:6px 0 0;
+    font-size:.85rem;
+    color:#c9c2a6;
+  }
+  .btn-view-data{
+    position:absolute;
+    top:20px;
+    right:20px;
+    margin-top:0;
+    background:transparent;
+    color:#f2ecdc;
+    border:1.5px solid var(--gold);
+    padding:9px 18px;
+    border-radius:5px;
+    font-size:.85rem;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn-view-data:hover{background:rgba(181,137,43,.15);}
+  .btn-view-data.active{background:var(--gold);color:var(--navy-deep);font-weight:600;}
+  main{
+    max-width:920px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+  .card{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    box-shadow:0 1px 3px rgba(28,43,68,.08);
+    padding:18px 18px 20px;
+    margin-bottom:22px;
+  }
+  .card h2{
+    font-size:1.02rem;
+    margin:0 0 14px;
+    color:var(--navy);
+    border-bottom:2px solid var(--paper-line);
+    padding-bottom:8px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px 16px;
+  }
+  .field{display:flex;flex-direction:column;}
+  .field.full{grid-column:1/-1;}
+  label{
+    font-size:.78rem;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  input[type=text], input[type=tel], input[type=number], input[type=date]{
+    padding:9px 10px;
+    border:1px solid #cfc9b8;
+    border-radius:4px;
+    font-size:.95rem;
+    background:#fffdf8;
+    color:var(--ink);
+  }
+  input:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  .type-toggle{
+    display:flex;
+    gap:10px;
+    grid-column:1/-1;
+    margin-top:2px;
+  }
+  .type-toggle label{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border:1.5px solid #cfc9b8;
+    border-radius:5px;
+    padding:10px;
+    font-size:.9rem;
+    color:var(--ink);
+    cursor:pointer;
+    background:#fffdf8;
+  }
+  .type-toggle input{accent-color:var(--navy);}
+  .type-toggle label.active-upi{border-color:var(--upi);background:#eef6f1;color:var(--upi);font-weight:600;}
+  .type-toggle label.active-aadhaar{border-color:var(--aadhaar);background:#f8ede9;color:var(--aadhaar);font-weight:600;}
+  .type-toggle label.active-deposit{border-color:var(--deposit);background:#eaf1f8;color:var(--deposit);font-weight:600;}
+  .type-toggle label.active-withdraw{border-color:var(--withdraw);background:#f9f0e2;color:var(--withdraw);font-weight:600;}
+  .id-field{display:none;}
+  .id-field.shown{display:flex;}
+  .actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    grid-column:1/-1;
+    margin-top:6px;
+  }
+  button{
+    font-family:inherit;
+    font-size:.88rem;
+    padding:10px 18px;
+    border-radius:5px;
+    border:none;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--navy);color:#f2ecdc;}
+  .btn-primary:hover{background:var(--navy-deep);}
+  .btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--navy);}
+  .btn-outline:hover{background:#f1efe6;}
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .summary-row .total{
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--gold);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.85rem;
+  }
+  thead th{
+    background:var(--navy);
+    color:#f2ecdc;
+    padding:9px 8px;
+    text-align:left;
+    font-weight:600;
+  }
+  tbody td{
+    padding:8px;
+    border-bottom:1px solid var(--paper-line);
+    vertical-align:top;
+  }
+  tbody tr:nth-child(even){background:#fbf9f2;}
+  .badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:20px;
+    font-size:.72rem;
+    font-weight:700;
+  }
+  .badge.upi{background:#e2f0e8;color:var(--upi);}
+  .badge.aadhaar{background:#f3e2dd;color:var(--aadhaar);}
+  .badge.deposit{background:#e1ecf5;color:var(--deposit);}
+  .badge.withdraw{background:#f6ecd9;color:var(--withdraw);}
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--danger);
+    cursor:pointer;
+    font-size:.8rem;
+    padding:2px 4px;
+  }
+  .search-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .search-row input{
+    flex:1;
+    padding:9px 12px;
+    border:1px solid #cfc9b8;
+    border-radius:4px;
+    font-size:.9rem;
+    background:#fffdf8;
+    color:var(--ink);
+  }
+  .search-row input:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  .search-row button{white-space:nowrap;padding:9px 16px;}
+  .empty-msg{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:24px 0;
+    font-size:.88rem;
+  }
+  .note{
+    font-size:.78rem;
+    color:var(--ink-soft);
+    margin-top:10px;
+    line-height:1.5;
+  }
+  @media(max-width:600px){
+    .grid{grid-template-columns:1fr;}
+    table{font-size:.75rem;}
+    thead th, tbody td{padding:6px 5px;}
+    header{padding-top:60px;}
+    .btn-view-data{
+      position:static;
+      display:block;
+      margin:14px auto 0;
+    }
+  }
+  @media print{
+    header, .card:first-of-type, .search-row, .actions, .note, .btn-view-data{
+      display:none !important;
+    }
+    body{background:#fff;}
+    main{padding:0;max-width:none;}
+    .card{box-shadow:none;border:none;padding:0;}
+    table{font-size:.8rem;}
+    thead th{background:#1c2b44 !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    tbody tr:nth-child(even){background:#f2f0e8 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ग्राहक लेन-देन रजिस्टर</h1>
+  <p>UPI व आधार से जमा और निकासी की रोज़ाना एंट्री यहाँ दर्ज करें</p>
+  <button type="button" class="btn-view-data" id="toggleDataBtn">पुराना डेटा देखें</button>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>नई एंट्री जोड़ें</h2>
+    <form id="entryForm" class="grid">
+      <div class="field">
+        <label for="fDate">तारीख़</label>
+        <input type="date" id="fDate" required>
+      </div>
+      <div class="field">
+        <label for="fName">ग्राहक का नाम</label>
+        <input type="text" id="fName" placeholder="जैसे: रमेश कुमार" required>
+      </div>
+      <div class="field">
+        <label for="fMobile">मोबाइल नंबर</label>
+        <input type="tel" id="fMobile" maxlength="10" placeholder="10 अंकों का नंबर" required>
+      </div>
+      <div class="field">
+        <label for="fAmount">राशि (₹)</label>
+        <input type="number" id="fAmount" min="1" placeholder="जैसे: 2000" required>
+      </div>
+
+      <div class="type-toggle txn-toggle">
+        <label id="lblDeposit" for="txnDeposit">
+          <input type="radio" name="txnKind" id="txnDeposit" value="Deposit"> जमा (Deposit)
+        </label>
+        <label id="lblWithdraw" for="txnWithdraw">
+          <input type="radio" name="txnKind" id="txnWithdraw" value="Withdraw" checked> निकासी (Withdrawal)
+        </label>
+      </div>
+
+      <div class="type-toggle">
+        <label id="lblUpi" for="typeUpi">
+          <input type="radio" name="txnType" id="typeUpi" value="UPI" checked> UPI
+        </label>
+        <label id="lblAadhaar" for="typeAadhaar">
+          <input type="radio" name="txnType" id="typeAadhaar" value="Aadhaar"> आधार (AEPS)
+        </label>
+      </div>
+
+      <div class="field id-field shown" id="upiField">
+        <label for="fUpi">UPI आईडी</label>
+        <input type="text" id="fUpi" placeholder="जैसे: name@upi">
+      </div>
+      <div class="field id-field" id="aadhaarField">
+        <label for="fAadhaar">आधार नंबर (12 अंक)</label>
+        <input type="text" id="fAadhaar" maxlength="12" placeholder="XXXX XXXX XXXX">
+      </div>
+
+      <div class="field full">
+        <label for="fRemark">टिप्पणी (वैकल्पिक)</label>
+        <input type="text" id="fRemark" placeholder="कोई अतिरिक्त जानकारी">
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-outline" id="clearFormBtn">फॉर्म साफ़ करें</button>
+        <button type="submit" class="btn-primary">एंट्री जोड़ें</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" id="dataCard" style="display:none;">
+    <div class="summary-row">
+      <h2 style="border:none;padding:0;margin:0;">आज तक की एंट्रियाँ (<span id="rowCount">0</span>)</h2>
+      <div class="total">कुल राशि: ₹<span id="totalAmount">0</span></div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="searchBox" placeholder="नाम, मोबाइल नंबर, तारीख़ (DD/MM/YYYY) या जमा/निकासी से खोजें...">
+      <button type="button" class="btn-outline" id="clearSearchBtn">साफ़ करें</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table id="entryTable">
+        <thead>
+          <tr>
+            <th>तारीख़</th>
+            <th>नाम</th>
+            <th>मोबाइल</th>
+            <th>लेन-देन</th>
+            <th>माध्यम</th>
+            <th>UPI / आधार</th>
+            <th>राशि</th>
+            <th>टिप्पणी</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-msg" id="emptyMsg">अभी तक कोई एंट्री दर्ज नहीं की गई है।</div>
+    </div>
+
+    <div class="actions" style="margin-top:14px;">
+      <button type="button" class="btn-outline" id="printBtn">प्रिंट करें</button>
+      <button type="button" class="btn-outline" id="exportBtn">CSV में डाउनलोड करें</button>
+    </div>
+
+    <p class="note">
+      ध्यान दें: अब सभी एंट्रियाँ Firebase डेटाबेस में सुरक्षित रूप से सेव होती हैं — रीफ्रेश या पेज बंद करने पर डेटा नहीं मिटेगा।
+      फिर भी हर दिन के अंत में "CSV में डाउनलोड करें" बटन दबाकर रिकॉर्ड अपने कंप्यूटर में भी सुरक्षित रखें।
+      खोज बॉक्स से आप नाम, मोबाइल नंबर या तारीख़ (जैसे 13/09/2026) डालकर एंट्रियाँ ढूँढ सकते हैं — डाउनलोड बटन उसी खोज परिणाम को CSV में सेव करेगा।
+      आधार नंबर जैसी संवेदनशील जानकारी को सुरक्षित रखें और किसी के साथ साझा न करें।
+    </p>
+  </div>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyChSFmSqdC0_hDkc1SKxiqNX-riEhFmDP0",
+    authDomain: "deposit-withdrow-resister.firebaseapp.com",
+    databaseURL: "https://deposit-withdrow-resister-default-rtdb.firebaseio.com",
+    projectId: "deposit-withdrow-resister",
+    storageBucket: "deposit-withdrow-resister.firebasestorage.app",
+    messagingSenderId: "50571832864",
+    appId: "1:50571832864:web:a5c548446718621d035645",
+    measurementId: "G-EKRVF8VCLB"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const entriesRef = db.ref('entries');
+
+  const fDate = document.getElementById('fDate');
+  fDate.valueAsDate = new Date();
+
+  const txnDeposit = document.getElementById('txnDeposit');
+  const txnWithdraw = document.getElementById('txnWithdraw');
+  const lblDeposit = document.getElementById('lblDeposit');
+  const lblWithdraw = document.getElementById('lblWithdraw');
+
+  function refreshKindUI(){
+    lblDeposit.classList.toggle('active-deposit', txnDeposit.checked);
+    lblWithdraw.classList.toggle('active-withdraw', txnWithdraw.checked);
+  }
+  txnDeposit.addEventListener('change', refreshKindUI);
+  txnWithdraw.addEventListener('change', refreshKindUI);
+  refreshKindUI();
+
+  const typeUpi = document.getElementById('typeUpi');
+  const typeAadhaar = document.getElementById('typeAadhaar');
+  const upiField = document.getElementById('upiField');
+  const aadhaarField = document.getElementById('aadhaarField');
+  const lblUpi = document.getElementById('lblUpi');
+  const lblAadhaar = document.getElementById('lblAadhaar');
+  const fUpi = document.getElementById('fUpi');
+  const fAadhaar = document.getElementById('fAadhaar');
+
+  function refreshTypeUI(){
+    const isUpi = typeUpi.checked;
+    upiField.classList.toggle('shown', isUpi);
+    aadhaarField.classList.toggle('shown', !isUpi);
+    lblUpi.classList.toggle('active-upi', isUpi);
+    lblAadhaar.classList.toggle('active-aadhaar', !isUpi);
+  }
+  typeUpi.addEventListener('change', refreshTypeUI);
+  typeAadhaar.addEventListener('change', refreshTypeUI);
+  refreshTypeUI();
+
+  let entries = [];
+
+  const tableBody = document.getElementById('tableBody');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const rowCount = document.getElementById('rowCount');
+  const totalAmount = document.getElementById('totalAmount');
+  const searchBox = document.getElementById('searchBox');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+  function formatDate(d){
+    const [y,m,day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  function getFilteredEntries(){
+    const query = searchBox.value.trim().toLowerCase();
+    if(!query) return entries;
+    return entries.filter(e => {
+      const kindLabel = e.kind === 'Deposit' ? 'जमा' : 'निकासी';
+      return e.name.toLowerCase().includes(query)
+          || e.mobile.includes(query)
+          || formatDate(e.date).includes(query)
+          || e.date.includes(query)
+          || kindLabel.includes(query);
+    });
+  }
+
+  function render(){
+    const filtered = getFilteredEntries();
+    tableBody.innerHTML = '';
+
+    if(entries.length === 0){
+      emptyMsg.style.display = 'block';
+      emptyMsg.textContent = 'अभी तक कोई एंट्री दर्ज नहीं की गई है।';
+    } else if(filtered.length === 0){
+      emptyMsg.style.display = 'block';
+      emptyMsg.textContent = 'आपकी खोज से मेल खाती कोई एंट्री नहीं मिली।';
+    } else {
+      emptyMsg.style.display = 'none';
+      filtered.forEach((e) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${formatDate(e.date)}</td>
+          <td>${e.name}</td>
+          <td>${e.mobile}</td>
+          <td><span class="badge ${e.kind === 'Deposit' ? 'deposit' : 'withdraw'}">${e.kind === 'Deposit' ? 'जमा' : 'निकासी'}</span></td>
+          <td><span class="badge ${e.type === 'UPI' ? 'upi' : 'aadhaar'}">${e.type === 'UPI' ? 'UPI' : 'आधार'}</span></td>
+          <td>${e.idValue}</td>
+          <td>₹${Number(e.amount).toLocaleString('en-IN')}</td>
+          <td>${e.remark || '—'}</td>
+          <td><button class="del-btn" data-id="${e.id}">हटाएँ</button></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    rowCount.textContent = filtered.length;
+    const total = filtered.reduce((sum, e) => sum + Number(e.amount), 0);
+    totalAmount.textContent = total.toLocaleString('en-IN');
+  }
+
+  tableBody.addEventListener('click', (ev) => {
+    if(ev.target.classList.contains('del-btn')){
+      const id = ev.target.dataset.id;
+      entriesRef.child(id).remove();
+    }
+  });
+
+  // Firebase से लाइव सिंक — हर बदलाव पर पूरी लिस्ट फिर से बनती है
+  entriesRef.on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    render();
+  });
+
+  searchBox.addEventListener('input', render);
+  clearSearchBtn.addEventListener('click', () => {
+    searchBox.value = '';
+    render();
+  });
+
+  document.getElementById('entryForm').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+
+    const mobile = document.getElementById('fMobile').value.trim();
+    if(!/^\d{10}$/.test(mobile)){
+      alert('कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें।');
+      return;
+    }
+
+    const isUpi = typeUpi.checked;
+    let idValue = '';
+    if(isUpi){
+      idValue = fUpi.value.trim();
+      if(!idValue){
+        alert('कृपया UPI आईडी दर्ज करें।');
+        return;
+      }
+    } else {
+      idValue = fAadhaar.value.trim().replace(/\s+/g,'');
+      if(!/^\d{12}$/.test(idValue)){
+        alert('कृपया सही 12 अंकों का आधार नंबर दर्ज करें।');
+        return;
+      }
+    }
+
+    const entry = {
+      date: fDate.value,
+      name: document.getElementById('fName').value.trim(),
+      mobile,
+      kind: txnDeposit.checked ? 'Deposit' : 'Withdraw',
+      type: isUpi ? 'UPI' : 'Aadhaar',
+      idValue,
+      amount: document.getElementById('fAmount').value,
+      remark: document.getElementById('fRemark').value.trim()
+    };
+
+    entriesRef.push(entry);
+
+    document.getElementById('entryForm').reset();
+    fDate.valueAsDate = new Date();
+    typeUpi.checked = true;
+    txnWithdraw.checked = true;
+    refreshTypeUI();
+    refreshKindUI();
+    document.getElementById('fName').focus();
+  });
+
+  document.getElementById('clearFormBtn').addEventListener('click', () => {
+    document.getElementById('entryForm').reset();
+    fDate.valueAsDate = new Date();
+    typeUpi.checked = true;
+    txnWithdraw.checked = true;
+    refreshTypeUI();
+    refreshKindUI();
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const toExport = getFilteredEntries();
+    if(toExport.length === 0){
+      alert('डाउनलोड करने के लिए कोई एंट्री नहीं है।');
+      return;
+    }
+    const header = ['तारीख़','नाम','मोबाइल','लेन-देन','माध्यम','UPI/आधार','राशि','टिप्पणी'];
+    const rows = toExport.map(e => [
+      formatDate(e.date), e.name, e.mobile, (e.kind === 'Deposit' ? 'जमा' : 'निकासी'), e.type, e.idValue, e.amount, e.remark || ''
+    ]);
+    const csvContent = [header, ...rows]
+      .map(row => row.map(field => `"${String(field).replace(/"/g,'""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `grahak_register_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  const printBtn = document.getElementById('printBtn');
+  printBtn.addEventListener('click', () => {
+    if(entries.length === 0){
+      alert('प्रिंट करने के लिए कोई एंट्री नहीं है।');
+      return;
+    }
+    window.print();
+  });
+
+  const toggleDataBtn = document.getElementById('toggleDataBtn');
+  const dataCard = document.getElementById('dataCard');
+  toggleDataBtn.addEventListener('click', () => {
+    const isHidden = dataCard.style.display === 'none';
+    dataCard.style.display = isHidden ? 'block' : 'none';
+    toggleDataBtn.textContent = isHidden ? 'पुराना डेटा छुपाएं' : 'पुराना डेटा देखें';
+    toggleDataBtn.classList.toggle('active', isHidden);
+    if(isHidden){
+      searchBox.focus();
+    }
+  });
+
+  render();
+</script>
+
+</body>
+</html>
